@@ -1,128 +1,229 @@
 import styled from "styled-components/native";
 import { Dimensions } from "react-native";
+
 const { width } = Dimensions.get("window");
+const TAB_COUNT = 3;
+const TAB_WIDTH = width / TAB_COUNT; // width mỗi tab (dùng làm tham chiếu khi translate)
+const UNDERLINE_WIDTH = 56; // độ rộng vạch xanh (bạn có thể điều chỉnh)
 
 export const Container = styled.View`
+  padding-top: 32px;
   flex: 1;
-  background-color: #fff;
+  background-color: #ffffff;
 `;
 
+/* Header (nút back) */
 export const Header = styled.View`
-  background-color: #2aa3aa;
+  background-color: transparent;
+  padding: 12px 16px;
   flex-direction: row;
   align-items: center;
-  padding: 14px 16px;
-  border-bottom-left-radius: 16px;
-  border-bottom-right-radius: 16px;
-  elevation: 5;
+  justify-content: flex-start;
 `;
 
 export const BackButton = styled.TouchableOpacity`
   padding: 6px;
-  margin-right: 10px;
 `;
 
-export const HeaderTitle = styled.Text`
-  color: #fff;
-  font-size: 18px;
-  font-weight: 600;
+/* Row chứa ảnh bìa + thông tin */
+export const BookRow = styled.View`
+  flex-direction: row;
+  padding: 16px;
+  border-bottom-width: 1px;
+  border-color: #f0f0f0;
+  background-color: #fff;
 `;
 
 export const CoverImage = styled.Image`
-  width: 100%;
-  height: 340px;
-  border-bottom-left-radius: 24px;
-  border-bottom-right-radius: 24px;
+  width: 110px;
+  height: 170px;
+  border-radius: 10px;
+  margin-right: 16px;
+  background-color: #f2f2f2;
 `;
 
-export const InfoCard = styled.View`
-  background-color: #fff;
-  margin: -40px 16px 16px 16px;
-  padding: 20px;
-  border-radius: 16px;
-  elevation: 4;
-  shadow-color: #000;
-  shadow-opacity: 0.1;
-  shadow-radius: 6px;
+export const InfoSection = styled.View`
+  flex: 1;
+  justify-content: center;
 `;
 
+/* Tiêu đề / tác giả */
 export const BookTitle = styled.Text`
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
-  color: #2aa3aa;
+  color: #111;
 `;
 
 export const BookAuthor = styled.Text`
-  color: #555;
-  font-size: 15px;
-  margin-top: 4px;
-`;
-
-export const StarsRow = styled.View`
-  flex-direction: row;
-  margin-top: 8px;
-`;
-
-export const TabContainer = styled.View`
-  flex-direction: row;
-  justify-content: space-around;
-  border-bottom-width: 1px;
-  border-color: #eee;
-  padding-top: 12px;
-`;
-
-export const TabButton = styled.TouchableOpacity`
-  align-items: center;
-  padding-bottom: 10px;
-`;
-
-export const TabText = styled.Text<{ active?: boolean }>`
-  font-size: 16px;
-  color: ${(p) => (p.active ? "#2aa3aa" : "#888")};
-  font-weight: ${(p) => (p.active ? "700" : "500")};
-`;
-
-export const TabUnderline = styled.View`
-  width: 30px;
-  height: 3px;
-  background-color: #2aa3aa;
-  border-radius: 3px;
+  font-size: 14px;
+  color: #2aa3aa;
   margin-top: 6px;
 `;
 
-export const ContentBox = styled.View`
-  padding: 16px;
+/* Hàng sao / rating */
+export const StarsRow = styled.View`
+  flex-direction: row;
+  align-items: center;
+  margin-top: 8px;
 `;
 
-export const Label = styled.Text`
-  font-weight: 700;
+export const RatingText = styled.Text`
+  font-size: 13px;
+  color: #777;
+  margin-left: 8px;
+`;
+
+/* Tag thể loại nhỏ */
+export const CategoryTag = styled.Text`
+  margin-top: 8px;
+  align-self: flex-start;
+  background-color: rgba(42, 163, 170, 0.08);
   color: #2aa3aa;
-  margin-bottom: 8px;
-  font-size: 16px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
 `;
 
-export const Description = styled.Text`
-  color: #333;
+/* Tabs container */
+export const TabsContainer = styled.View`
+  flex-direction: row;
+  position: relative;
+  border-bottom-width: 1px;
+  border-bottom-color: #eee;
+  margin-top: 12px;
+  background-color: #fff;
+`;
+
+/* Nút tab (mỗi tab chia đều) */
+export const TabButton = styled.TouchableOpacity`
+  flex: 1;
+  align-items: center;
+  padding-vertical: 12px;
+`;
+
+/* Text tab */
+export const TabText = styled.Text<{ active?: boolean }>`
   font-size: 15px;
-  line-height: 22px;
+  font-weight: ${(p) => (p.active ? "700" : "600")};
+  color: ${(p) => (p.active ? "#2AA3AA" : "#8C97A3")};
 `;
 
-export const ReviewCard = styled.View`
-  margin-bottom: 16px;
+/* Vạch underline (kích thước cố định, sẽ translate bằng Animated) */
+export const TabUnderline = styled.View`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: ${UNDERLINE_WIDTH}px;
+  height: 3px;
+  background-color: #2aa3aa;
+  border-radius: 3px;
+  margin-bottom: 6px;
 `;
 
-export const ReviewHeader = styled.View`
+/* dividing line */
+export const Divider = styled.View`
+  height: 8px;
+  background-color: #fafafa;
+`;
+
+/* Info blocks */
+export const InfoBlock = styled.View`
+  padding: 14px 16px;
+  background-color: #fff;
+  border-bottom-width: 1px;
+  border-color: #f6f6f6;
+`;
+
+export const InfoLabel = styled.Text`
+  font-size: 13px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 6px;
+`;
+
+export const InfoValue = styled.Text`
+  font-size: 14px;
+  color: #666;
+  line-height: 20px;
+`;
+
+/* Bottom action buttons (fixed) */
+export const BottomButtons = styled.View`
+  position: absolute;
+  bottom: 18px;
+  left: 16px;
+  right: 16px;
   flex-direction: row;
   justify-content: space-between;
+  gap: 12px;
+`;
+
+export const WishlistButton = styled.TouchableOpacity`
+  flex: 1;
+  background-color: #2aa3aa;
+  padding: 12px;
+  border-radius: 10px;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  flex-direction: row;
+`;
+
+export const ShelfButton = styled.TouchableOpacity`
+  flex: 1;
+  background-color: #fff;
+  border: 1.5px solid #2aa3aa;
+  padding: 12px;
+  border-radius: 10px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+`;
+
+export const ButtonText = styled.Text`
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-left: 8px;
+`;
+
+/* Related list helpers (you may use these or inline styles) */
+export const RelatedContainer = styled.View`
+  padding: 12px 8px 28px;
+  background-color: #fff;
+`;
+
+export const RelatedBook = styled.View`
+  width: 120px;
+  align-items: center;
+  margin-right: 12px;
+`;
+
+export const RelatedImage = styled.Image`
+  width: 100%;
+  height: 170px;
+  border-radius: 10px;
+  background-color: #f2f2f2;
+`;
+
+export const RelatedTitle = styled.Text`
+  font-size: 13px;
+  color: #222;
+  text-align: center;
+  margin-top: 6px;
+`;
+
+/* Review item helpers (optional) */
+export const ReviewItem = styled.View`
+  background-color: #fbfbfb;
+  margin: 8px 12px;
+  padding: 12px;
+  border-radius: 10px;
 `;
 
 export const ReviewUser = styled.Text`
-  font-weight: 600;
+  font-weight: 700;
   color: #2aa3aa;
-`;
-
-export const ReviewDate = styled.Text`
-  color: #888;
 `;
 
 export const ReviewText = styled.Text`
@@ -131,25 +232,30 @@ export const ReviewText = styled.Text`
   line-height: 20px;
 `;
 
-export const RelatedCard = styled.TouchableOpacity`
-  width: ${width * 0.38}px;
-  margin-right: 12px;
-`;
-
-export const RelatedImage = styled.Image`
+/* Modal box helpers (if you want to style modal internals here) */
+export const ModalBox = styled.View`
   width: 100%;
-  height: 180px;
+  background-color: #fff;
   border-radius: 12px;
+  padding: 18px;
 `;
 
-export const RelatedTitle = styled.Text`
-  font-size: 14px;
-  font-weight: 600;
-  margin-top: 6px;
-  color: #333;
+export const ModalTitle = styled.Text`
+  font-size: 16px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 8px;
 `;
 
-export const RelatedAuthor = styled.Text`
-  color: #2aa3aa;
-  font-size: 13px;
+export const ModalBody = styled.Text`
+  color: #444;
+  line-height: 20px;
+`;
+
+export const CloseModalBtn = styled.TouchableOpacity`
+  margin-top: 12px;
+  align-self: flex-end;
+  background-color: #2aa3aa;
+  padding: 8px 12px;
+  border-radius: 8px;
 `;

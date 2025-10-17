@@ -7,6 +7,14 @@ import { Ionicons } from "@expo/vector-icons";
 import LibraryScreen from "./src/screens/LibraryScreen";
 import BookScreen from "./src/screens/BookScreens";
 import BookDetailScreen from "./src/screens/BookDetailScreen";
+import ProfileScreen from "./src/screens/ProfileScreen";
+import HelpScreen from "./src/screens/HelpScreen";
+import EditProfileScreen from "./src/screens/EditProfileScreen";
+import HelpMain from "./src/screens/HelpMain";
+import HelpDetailScreen from "./src/screens/HelpDetailScreen";
+import ChatBoxScreen from "./src/screens/ChatBoxScreen";
+import BookShelf from "./src/screens/BookshelfScreen";
+import { ThemeProvider } from "./src/styles/ThemeContext";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -55,20 +63,27 @@ function MainTabs() {
       <Tab.Screen name="Tủ sách" component={LibraryScreen} />
       <Tab.Screen name="Thư viện" component={BookScreen} />
       <Tab.Screen name="Thương phố" component={LibraryScreen} />
-      <Tab.Screen name="Tường" component={LibraryScreen} />
-      <Tab.Screen name="Tài khoản" component={LibraryScreen} />
+      <Tab.Screen name="Tường" component={BookShelf} />
+      <Tab.Screen name="Tài khoản" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {/* Stack cấp cao nhất */}
-        <Stack.Screen name="Main" component={MainTabs} />
-        <Stack.Screen name="BookDetail" component={BookDetailScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ThemeProvider>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {/* Stack cấp cao nhất */}
+          <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen name="BookDetail" component={BookDetailScreen} />
+          <Stack.Screen name="Help" component={HelpScreen} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+          <Stack.Screen name="ManHinhHoTro" component={HelpMain} />
+          <Stack.Screen name="SupportDetail" component={HelpDetailScreen} />
+          <Stack.Screen name="ManHinhChatbox" component={ChatBoxScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ThemeProvider>
   );
 }
