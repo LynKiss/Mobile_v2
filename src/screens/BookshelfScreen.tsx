@@ -31,6 +31,7 @@ const BookshelfScreen = () => {
       {/* Header */}
       <View
         style={{
+          height: 64,
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
@@ -44,7 +45,7 @@ const BookshelfScreen = () => {
         <Text
           style={{
             fontSize: 22,
-            fontWeight: "700",
+            fontWeight: "600",
             color: theme.colors.text,
           }}
         >
@@ -79,7 +80,7 @@ const BookshelfScreen = () => {
               paddingVertical: 12,
               borderBottomWidth: 2,
               borderBottomColor:
-                selectedTab === tab.key ? theme.colors.primary : "transparent",
+                selectedTab === tab.key ? theme.colors.green : "transparent",
             }}
             onPress={() => setSelectedTab(tab.key)}
           >
@@ -87,7 +88,7 @@ const BookshelfScreen = () => {
               style={{
                 color:
                   selectedTab === tab.key
-                    ? theme.colors.primary
+                    ? theme.colors.green
                     : theme.colors.textSecondary,
                 fontWeight: selectedTab === tab.key ? "700" : "500",
                 fontSize: 16,

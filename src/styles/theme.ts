@@ -1,3 +1,5 @@
+import { green } from "react-native-reanimated/lib/typescript/Colors";
+
 // src/styles/theme.ts
 export const theme = {
   colors: {
@@ -10,6 +12,7 @@ export const theme = {
     border: "#E5E5EA", // viền nhạt
     danger: "#FF3B30", // đỏ cảnh báo
     success: "#34C759", // xanh xác nhận
+    green: "#2aa3a3", // xanh xác nhận
   },
   spacing: {
     xs: 4,

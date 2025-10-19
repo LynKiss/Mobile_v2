@@ -1,18 +1,16 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Platform } from "react-native";
 import {
   SafeAreaView,
   View,
   Text,
   ScrollView,
-  Image,
-  TouchableOpacity,
   Dimensions,
   Animated,
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { API_URL } from "../Api/config";
 import {
   Container,
   Header,
@@ -58,75 +56,14 @@ const banners = [
   { id: 4, title: "GIÁ NHẤT THẾ", img: "https://picsum.photos/900/400?4" },
 ];
 
-const mockSmall = new Array(8).fill(0).map((_, i) => ({
-  id: i + 1,
-  title: i % 2 === 0 ? "Nhân Tại Cao Tam, Hệ Thống..." : "Trần Vấn Trường Sinh",
-  img: `https://picsum.photos/200/300?random=${i + 10}`,
-}));
-
-const recommended = [
-  {
-    id: 1,
-    title: "Sống Sót Trong Trò Chơi Với Tư Cách Một Barbarian",
-    thumb: "https://picsum.photos/80/120?rc1",
-    status: "Tình trạng: Đang ra",
-    chapters: "Số chương: 670",
-  },
-  {
-    id: 2,
-    title: "Ngày Hôm Nay Cũng Đang Cố Gắng Làm Ma Đầu",
-    thumb: "https://picsum.photos/80/120?rc2",
-    status: "Tình trạng: Đang ra",
-    chapters: "Số chương: 238",
-  },
-  {
-    id: 3,
-    title: "Tôi Là Một Con Ma, Nhưng Tôi Muốn Làm Người",
-    thumb: "https://picsum.photos/80/120?rc3",
-    status: "Tình trạng: Đang ra",
-    chapters: "Số chương: 450",
-  },
-  {
-    id: 4,
-    title: "Hành Trình Của Một Kiếm Khách",
-    thumb: "https://picsum.photos/80/120?rc4",
-    status: "Tình trạng: Đang ra",
-    chapters: "Số chương: 320",
-  },
-];
-
-const mostViewed = [
-  {
-    id: 1,
-    title: "Vũ Động Càn Khôn",
-    thumb: "https://picsum.photos/80/120?mv1",
-    status: "Tình trạng: Đang ra",
-    chapters: "Số chương: 1200",
-  },
-  {
-    id: 2,
-    title: "Đấu La Đại Lục",
-    thumb: "https://picsum.photos/80/120?mv2",
-    status: "Tình trạng: Đang ra",
-    chapters: "Số chương: 890",
-  },
-  {
-    id: 3,
-    title: "Thần Ấn Vương Tọa",
-    thumb: "https://picsum.photos/80/120?mv3",
-    status: "Tình trạng: Đang ra",
-    chapters: "Số chương: 750",
-  },
-  {
-    id: 4,
-    title: "Ngạo Thế Độc Tôn",
-    thumb: "https://picsum.photos/80/120?mv4",
-    status: "Tình trạng: Đang ra",
-    chapters: "Số chương: 680",
-  },
-];
-
 export default function LibraryScreen() {
+  const [books, setBooks] = useState([]);
+  const [newBooks, setNewBooks] = useState([]);
+  const [recommendedBooks, setRecommendedBooks] = useState([]);
+  const [mostViewedBooks, setMostViewedBooks] = useState([]);
+  const [featuredBooks, setFeaturedBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   // banner auto-slide
   const scrollRef = useRef<ScrollView | null>(null);
   const [index, setIndex] = useState(0);
@@ -137,23 +74,64 @@ export default function LibraryScreen() {
       setIndex(next);
     }, 3500);
     return () => clearInterval(iv);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index]);
 
-  // dot indicator sync on manual swipe
+  // dot indicator sync
   const onScroll = (e: any) => {
     const x = e.nativeEvent.contentOffset.x;
     const newIdx = Math.round(x / width);
     if (newIdx !== index) setIndex(newIdx);
   };
 
-  // fade-in for small cards
-  const fadeAnims = useRef(mockSmall.map(() => new Animated.Value(0))).current;
-
+  // ✅ Load 1 lần duy nhất từ /api/sach/full và xử lý dữ liệu
   useEffect(() => {
-    // Reset animations to avoid native driver conflict
+    const fetchBooks = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_URL}/api/sach/full`);
+        const text = await res.text();
+        if (!text) throw new Error("Empty response");
+        const { data } = JSON.parse(text);
+
+        if (!Array.isArray(data)) return;
+
+        setBooks(data);
+
+        // ✅ Phân loại dữ liệu
+        const sortedByDate = [...data].sort(
+          (a, b) => new Date(b.ngay_nhap) - new Date(a.ngay_nhap)
+        );
+        const newData = sortedByDate.slice(0, 8);
+
+        const recommendedData = data
+          .filter((s) => s.de_cu === 1 || s.noi_bat === 1)
+          .slice(0, 4);
+
+        const mostViewedData = [...data]
+          .sort((a, b) => (b.luot_muon || 0) - (a.luot_muon || 0))
+          .slice(0, 4);
+
+        const featuredData = data.filter((s) => s.noi_bat === 1).slice(0, 8);
+
+        setNewBooks(newData);
+        setRecommendedBooks(recommendedData);
+        setMostViewedBooks(mostViewedData);
+        setFeaturedBooks(featuredData);
+      } catch (err) {
+        console.error("Lỗi tải dữ liệu:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooks();
+  }, []);
+
+  // fade-in animation
+  const fadeAnims = useRef(newBooks.map(() => new Animated.Value(0))).current;
+  useEffect(() => {
     fadeAnims.forEach((anim) => anim.setValue(0));
-    const seq = mockSmall.map((_, i) =>
+    const seq = newBooks.map((_, i) =>
       Animated.timing(fadeAnims[i], {
         toValue: 1,
         duration: 600,
@@ -162,7 +140,7 @@ export default function LibraryScreen() {
       })
     );
     Animated.stagger(80, seq).start();
-  }, []);
+  }, [newBooks]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -185,7 +163,7 @@ export default function LibraryScreen() {
               ref={(r: any) => (scrollRef.current = r)}
               onMomentumScrollEnd={onScroll}
             >
-              {banners.map((b, i) => (
+              {banners.map((b) => (
                 <View key={b.id} style={{ width }}>
                   <BannerImage source={{ uri: b.img }} resizeMode="cover" />
                   <LinearGradient
@@ -212,108 +190,121 @@ export default function LibraryScreen() {
             </DotsRow>
           </BannerWrap>
 
-          {/* icon bar (flat icons, no shadows) */}
+          {/* Icon bar */}
           <IconBar>
-            <IconItem activeOpacity={0.7}>
+            <IconItem>
               <Ionicons name="grid-outline" size={28} color="#2aa3a3" />
               <IconLabel>Thể loại</IconLabel>
             </IconItem>
-
-            <IconItem activeOpacity={0.7}>
+            <IconItem>
               <Ionicons name="bar-chart-outline" size={28} color="#2aa3a3" />
               <IconLabel>Xếp hạng</IconLabel>
             </IconItem>
-
-            <IconItem activeOpacity={0.7}>
+            <IconItem>
               <Ionicons name="filter-outline" size={28} color="#2aa3a3" />
               <IconLabel>Bộ lọc</IconLabel>
             </IconItem>
-
-            <IconItem activeOpacity={0.7}>
+            <IconItem>
               <Ionicons name="book-outline" size={28} color="#2aa3a3" />
               <IconLabel>Tin tức</IconLabel>
             </IconItem>
           </IconBar>
 
-          {/* Section: Truyện mới cập nhật (horizontal small cards) */}
-          {/* Section: Truyện mới cập nhật */}
+          {/* Section: Sách mới cập nhật */}
           <SectionBlock>
             <SectionHeader>
-              <SectionTitle>TRUYỆN MỚI CẬP NHẬT</SectionTitle>
-              <SeeMore>Xem thêm &gt;</SeeMore>
+              <SectionTitle>SÁCH MỚI CẬP NHẬT</SectionTitle>
+              <SeeMore>Xem thêm {">"}</SeeMore>
             </SectionHeader>
-
             <RowHorizontal horizontal showsHorizontalScrollIndicator={false}>
-              {mockSmall.map((b, i) => (
+              {newBooks.map((book: any, i) => (
                 <Animated.View
-                  key={b.id}
-                  style={{ opacity: fadeAnims[i], marginRight: 12 }}
+                  key={book.ma_sach}
+                  style={{ opacity: fadeAnims[i] || 1, marginRight: 12 }}
                 >
                   <SmallCard activeOpacity={0.85}>
-                    <SmallCover source={{ uri: b.img }} />
-                    <SmallTitle numberOfLines={2}>{b.title}</SmallTitle>
+                    <SmallCover
+                      source={{
+                        uri:
+                          book.hinh_bia ||
+                          "https://picsum.photos/200/300?random",
+                      }}
+                    />
+                    <SmallTitle numberOfLines={2}>{book.tieu_de}</SmallTitle>
                   </SmallCard>
                 </Animated.View>
               ))}
             </RowHorizontal>
           </SectionBlock>
 
-          {/* Section: Truyện đề cử (list style with small thumb left) */}
-          {/* Section: Truyện đề cử */}
+          {/* Section: Sách đề cử */}
           <ListBlock>
             <SectionHeader>
-              <SectionTitle>TRUYỆN ĐỀ CỬ</SectionTitle>
-              <SeeMore>Xem thêm &gt;</SeeMore>
+              <SectionTitle>SÁCH ĐỀ CỬ</SectionTitle>
+              <SeeMore>Xem thêm {">"}</SeeMore>
             </SectionHeader>
 
-            {recommended.map((r) => (
-              <ListItem key={r.id} activeOpacity={0.85}>
-                <ListThumb source={{ uri: r.thumb }} />
+            {recommendedBooks.map((book: any) => (
+              <ListItem key={book.ma_sach} activeOpacity={0.85}>
+                <ListThumb
+                  source={{
+                    uri: book.hinh_bia || "https://picsum.photos/80/120?random",
+                  }}
+                />
                 <ListContent>
-                  <ListTitle numberOfLines={2}>{r.title}</ListTitle>
-                  <ListMeta>{r.status}</ListMeta>
-                  <ListMeta>{r.chapters}</ListMeta>
+                  <ListTitle numberOfLines={2}>{book.tieu_de}</ListTitle>
+                  <ListMeta>Tác giả: {book.tac_gia}</ListMeta>
+                  <ListMeta>Thể loại: {book.ten_the_loai}</ListMeta>
                 </ListContent>
               </ListItem>
             ))}
           </ListBlock>
 
-          {/* Section: Truyện mới (horizontal small cards) */}
+          {/* Section: Sách nổi bật */}
           <SectionBlock>
             <SectionHeader>
-              <SectionTitle>TRUYỆN MỚI</SectionTitle>
-              <SeeMore>Xem thêm </SeeMore>
+              <SectionTitle>SÁCH NỔI BẬT</SectionTitle>
+              <SeeMore>Xem thêm {">"}</SeeMore>
             </SectionHeader>
-
             <RowHorizontal horizontal showsHorizontalScrollIndicator={false}>
-              {mockSmall.map((b, i) => (
+              {featuredBooks.map((book: any, i) => (
                 <Animated.View
-                  key={`new-${b.id}`}
-                  style={{ opacity: fadeAnims[i], marginRight: 12 }}
+                  key={`featured-${book.ma_sach}`}
+                  style={{ opacity: fadeAnims[i] || 1, marginRight: 12 }}
                 >
                   <SmallCard activeOpacity={0.85}>
-                    <SmallCover source={{ uri: b.img }} />
-                    <SmallTitle numberOfLines={2}>{b.title}</SmallTitle>
+                    <SmallCover
+                      source={{
+                        uri:
+                          book.hinh_bia ||
+                          "https://picsum.photos/200/300?random",
+                      }}
+                    />
+                    <SmallTitle numberOfLines={2}>{book.tieu_de}</SmallTitle>
                   </SmallCard>
                 </Animated.View>
               ))}
             </RowHorizontal>
           </SectionBlock>
 
-          {/* Section: Truyện xem nhiều (list style with small thumb left) */}
+          {/* Section: Sách xem nhiều */}
           <ListBlock>
             <SectionHeader>
-              <SectionTitle>TRUYỆN XEM NHIỀU</SectionTitle>
-              <SeeMore>Xem thêm</SeeMore>
+              <SectionTitle>SÁCH XEM NHIỀU</SectionTitle>
+              <SeeMore>Xem thêm {">"}</SeeMore>
             </SectionHeader>
 
-            {mostViewed.map((r) => (
-              <ListItem key={r.id} activeOpacity={0.85}>
-                <ListThumb source={{ uri: r.thumb }} />
+            {mostViewedBooks.map((book: any) => (
+              <ListItem key={book.ma_sach} activeOpacity={0.85}>
+                <ListThumb
+                  source={{
+                    uri: book.hinh_bia || "https://picsum.photos/80/120?random",
+                  }}
+                />
                 <ListContent>
-                  <ListTitle numberOfLines={2}>{r.title}</ListTitle>
-                  <ListMeta>{r.status}</ListMeta>
-                  <ListMeta>{r.chapters}</ListMeta>
+                  <ListTitle numberOfLines={2}>{book.tieu_de}</ListTitle>
+                  <ListMeta>Tác giả: {book.tac_gia}</ListMeta>
+                  <ListMeta>Lượt mượn: {book.luot_muon || "N/A"}</ListMeta>
                 </ListContent>
               </ListItem>
             ))}

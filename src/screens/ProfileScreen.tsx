@@ -57,7 +57,7 @@ const ProfileScreen: React.FC<any> = ({ navigation }) => {
           <Option onPress={() => navigation.navigate("EditProfile")}>
             <OptionLeft>
               <OptionIcon>
-                <Ionicons name="person-outline" size={20} color="#4F46E5" />
+                <Ionicons name="person-outline" size={20} color="#2aa3a3" />
               </OptionIcon>
               <OptionLabel>Chỉnh sửa hồ sơ</OptionLabel>
             </OptionLeft>
@@ -72,7 +72,7 @@ const ProfileScreen: React.FC<any> = ({ navigation }) => {
                 <Ionicons
                   name="lock-closed-outline"
                   size={20}
-                  color="#4F46E5"
+                  color="#2aa3a3"
                 />
               </OptionIcon>
               <OptionLabel>Đổi mật khẩu</OptionLabel>
@@ -89,7 +89,7 @@ const ProfileScreen: React.FC<any> = ({ navigation }) => {
                 <Ionicons
                   name="notifications-outline"
                   size={20}
-                  color="#4F46E5"
+                  color="#2aa3a3"
                 />
               </OptionIcon>
               <OptionLabel>Cài đặt thông báo</OptionLabel>
@@ -102,7 +102,7 @@ const ProfileScreen: React.FC<any> = ({ navigation }) => {
           <Option>
             <OptionLeft>
               <OptionIcon>
-                <Ionicons name="time-outline" size={20} color="#4F46E5" />
+                <Ionicons name="time-outline" size={20} color="#2aa3a3" />
               </OptionIcon>
               <OptionLabel>Lịch sử mượn sách</OptionLabel>
             </OptionLeft>
@@ -117,7 +117,7 @@ const ProfileScreen: React.FC<any> = ({ navigation }) => {
                 <Ionicons
                   name="help-circle-outline"
                   size={20}
-                  color="#4F46E5"
+                  color="#2aa3a3"
                 />
               </OptionIcon>
               <OptionLabel>Trợ giúp & Hỗ trợ</OptionLabel>
