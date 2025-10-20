@@ -15,6 +15,8 @@ import HelpMain from "./src/screens/HelpMain";
 import HelpDetailScreen from "./src/screens/HelpDetailScreen";
 import ChatBoxScreen from "./src/screens/ChatBoxScreen";
 import BookShelf from "./src/screens/BookshelfScreen";
+import NotificationSettingsScreen from "./src/screens/NotificationSettingsScreen";
+import FineScreen from "./src/screens/FineScreen";
 import { ThemeProvider } from "./src/styles/ThemeContext";
 import { AuthProvider, useAuth } from "./src/contexts/AuthContext";
 import LoginScreen from "./src/screens/LoginScreen";
@@ -72,16 +74,22 @@ function MainTabs() {
   );
 }
 
-export default function App() {
+function AppContent() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return null; // Or a loading screen
+  }
+
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <NavigationContainer>
-          <Stack.Navigator
-            screenOptions={{
-              headerShown: false,
-            }}
-          >
+    <NavigationContainer>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        {isAuthenticated ? (
+          <>
             <Stack.Screen name="MainTabs" component={MainTabs} />
             <Stack.Screen name="BookDetail" component={BookDetailScreen} />
             <Stack.Screen
@@ -89,12 +97,29 @@ export default function App() {
               component={BookDetailScreen_MT}
             />
             <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+            <Stack.Screen name="Help" component={HelpScreen} />
             <Stack.Screen name="HelpMain" component={HelpMain} />
             <Stack.Screen name="HelpDetail" component={HelpDetailScreen} />
             <Stack.Screen name="ChatBox" component={ChatBoxScreen} />
-            <Stack.Screen name="Login" component={LoginScreen} />
-          </Stack.Navigator>
-        </NavigationContainer>
+            <Stack.Screen
+              name="NotificationSettings"
+              component={NotificationSettingsScreen}
+            />
+            <Stack.Screen name="FineScreen" component={FineScreen} />
+          </>
+        ) : (
+          <Stack.Screen name="Login" component={LoginScreen} />
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
       </AuthProvider>
     </ThemeProvider>
   );

@@ -232,6 +232,7 @@ const BorrowedBooksScreen = ({ navigation }: any) => {
       <View style={{ marginBottom: 20, paddingHorizontal: 16 }}>
         <View
           style={{
+            marginTop: 10,
             marginBottom: 16,
             paddingLeft: 10,
             borderLeftWidth: 3,

@@ -1,6 +1,7 @@
 import React from "react";
 import { ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../contexts/AuthContext";
 import {
   Container,
   Header,
@@ -20,11 +21,24 @@ import {
   OptionIcon,
   OptionArrow,
   Divider,
+  NotificationIcon,
 } from "../styles/ProfileScreen.styles";
 
 const ProfileScreen: React.FC<any> = ({ navigation }) => {
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigation.navigate("Login");
+  };
+
   return (
     <Container>
+      <NotificationIcon
+        onPress={() => navigation.navigate("NotificationSettings")}
+      >
+        <Ionicons name="notifications-outline" size={20} color="#fff" />
+      </NotificationIcon>
       <ScrollView showsVerticalScrollIndicator={false}>
         <Header>
           <AvatarContainer>
@@ -83,7 +97,7 @@ const ProfileScreen: React.FC<any> = ({ navigation }) => {
 
         <Section>
           <SectionTitle>Khác</SectionTitle>
-          <Option>
+          <Option onPress={() => navigation.navigate("NotificationSettings")}>
             <OptionLeft>
               <OptionIcon>
                 <Ionicons
@@ -111,6 +125,22 @@ const ProfileScreen: React.FC<any> = ({ navigation }) => {
 
           <Divider />
 
+          <Option onPress={() => navigation.navigate("FineScreen")}>
+            <OptionLeft>
+              <OptionIcon>
+                <Ionicons
+                  name="document-text-outline"
+                  size={20}
+                  color="#2aa3a3"
+                />
+              </OptionIcon>
+              <OptionLabel>Phạt & Thanh toán</OptionLabel>
+            </OptionLeft>
+            <OptionArrow name="chevron-forward" size={18} color="#A1A1AA" />
+          </Option>
+
+          <Divider />
+
           <Option onPress={() => navigation.navigate("Help")}>
             <OptionLeft>
               <OptionIcon>
@@ -127,7 +157,7 @@ const ProfileScreen: React.FC<any> = ({ navigation }) => {
 
           <Divider />
 
-          <Option>
+          <Option onPress={handleLogout}>
             <OptionLeft>
               <OptionIcon>
                 <Ionicons name="log-out-outline" size={20} color="#EF4444" />

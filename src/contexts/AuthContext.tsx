@@ -41,9 +41,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const checkAuthState = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken");
-      if (token) {
+      const userData = await AsyncStorage.getItem("user");
+      if (token && userData) {
         setIsAuthenticated(true);
-        // You might want to validate the token with your backend here
+        setUser(JSON.parse(userData));
       }
     } catch (error) {
       console.error("Error checking auth state:", error);
@@ -65,6 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.ok) {
         const data = await response.json();
         await AsyncStorage.setItem("userToken", data.token);
+        await AsyncStorage.setItem("user", JSON.stringify(data.user));
         setIsAuthenticated(true);
         setUser(data.user);
       } else {
@@ -79,6 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       await AsyncStorage.removeItem("userToken");
+      await AsyncStorage.removeItem("user");
       setIsAuthenticated(false);
       setUser(null);
     } catch (error) {

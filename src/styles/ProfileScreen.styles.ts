@@ -124,3 +124,21 @@ export const Divider = styled.View`
   background-color: #f3f4f6;
   margin-left: 52px;
 `;
+
+export const NotificationIcon = styled.TouchableOpacity`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background-color: #2aa3a3;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  justify-content: center;
+  align-items: center;
+  elevation: 4;
+  shadow-color: #000;
+  shadow-opacity: 0.1;
+  shadow-radius: 4px;
+  shadow-offset: 0px 2px;
+  z-index: 10;
+`;

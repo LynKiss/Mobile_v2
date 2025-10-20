@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  Modal,
+  TextInput,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
@@ -40,6 +42,11 @@ const BookDetailScreen = ({ route, navigation }: any) => {
   const [bookDetail, setBookDetail] = useState<any>(book || null);
   const [loading, setLoading] = useState(!book?.mo_ta); // nếu đã có chi tiết thì khỏi tải lại
   const [processing, setProcessing] = useState(false);
+  const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const [newReview, setNewReview] = useState({
+    content: "",
+    stars: 0,
+  });
 
   // 📦 Lấy chi tiết sách từ API nếu chưa có
   useEffect(() => {
@@ -149,6 +156,83 @@ const BookDetailScreen = ({ route, navigation }: any) => {
     } finally {
       setProcessing(false);
     }
+  };
+
+  // ⭐ Đánh giá sách
+  const handleSubmitReview = async () => {
+    if (!newReview.content.trim() || newReview.stars === 0) {
+      Alert.alert("Lỗi", "Vui lòng nhập nội dung đánh giá và chọn số sao!");
+      return;
+    }
+
+    try {
+      setProcessing(true);
+      const token = await AsyncStorage.getItem("userToken");
+      const userData = await AsyncStorage.getItem("user");
+
+      if (!token || !userData) {
+        Alert.alert("Lỗi", "Bạn chưa đăng nhập!");
+        return;
+      }
+
+      const user = JSON.parse(userData);
+      const ma_doc_gia = user.ma_nguoi_dung;
+
+      if (!ma_doc_gia) {
+        Alert.alert("Lỗi", "Không thể xác định người dùng!");
+        return;
+      }
+
+      const reviewData = {
+        ma_sach: bookDetail.ma_sach,
+        ma_doc_gia: ma_doc_gia,
+        diem: newReview.stars,
+        binh_luan: newReview.content.trim(),
+        ngay_danh_gia: new Date().toISOString().split("T")[0],
+      };
+
+      const res = await fetch(`${API_URL}/api/danh_gia`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(reviewData),
+      });
+
+      console.log("Review data:", reviewData);
+      console.log("Response status:", res.status);
+      const responseText = await res.text();
+      console.log("Response text:", responseText);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Không thể gửi đánh giá: ${errorText}`);
+      }
+
+      Alert.alert("✅ Thành công", "Đánh giá của bạn đã được gửi!");
+      setReviewModalVisible(false);
+      setNewReview({ content: "", stars: 0 });
+    } catch (err) {
+      console.error("❌ Lỗi khi gửi đánh giá:", err);
+      Alert.alert("Lỗi", "Không thể gửi đánh giá. Vui lòng thử lại!");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const renderStars = (count: number, editable = false) => {
+    const safeCount = isNaN(count) ? 0 : Math.max(0, Math.min(5, count));
+    return Array.from({ length: 5 }).map((_, i) => (
+      <Ionicons
+        key={i}
+        name={i < safeCount ? "star" : "star-outline"}
+        size={24}
+        color="#FFD700"
+        style={{ marginHorizontal: 2 }}
+        onPress={() => editable && setNewReview({ ...newReview, stars: i + 1 })}
+      />
+    ));
   };
 
   if (loading) {
@@ -265,15 +349,15 @@ const BookDetailScreen = ({ route, navigation }: any) => {
         }}
         showsVerticalScrollIndicator={false}
       >
-        <InfoBlock>
+        <InfoBlock key="the-loai">
           <InfoLabel>THỂ LOẠI</InfoLabel>
           <InfoValue>{bookDetail.ten_the_loai || "Không xác định"}</InfoValue>
         </InfoBlock>
-        <InfoBlock>
+        <InfoBlock key="nxb">
           <InfoLabel>NHÀ XUẤT BẢN</InfoLabel>
           <InfoValue>{bookDetail.ten_nxb || "Không xác định"}</InfoValue>
         </InfoBlock>
-        <InfoBlock>
+        <InfoBlock key="ngay-xuat-ban">
           <InfoLabel>NGÀY XUẤT BẢN</InfoLabel>
           <InfoValue>
             {bookDetail.nam_xuat_ban
@@ -281,33 +365,33 @@ const BookDetailScreen = ({ route, navigation }: any) => {
               : "Không xác định"}
           </InfoValue>
         </InfoBlock>
-        <InfoBlock>
+        <InfoBlock key="so-trang">
           <InfoLabel>SỐ TRANG</InfoLabel>
           <InfoValue>{bookDetail.so_trang || "Không xác định"}</InfoValue>
         </InfoBlock>
-        <InfoBlock>
+        <InfoBlock key="ngon-ngu">
           <InfoLabel>NGÔN NGỮ</InfoLabel>
           <InfoValue>{bookDetail.ten_ngon_ngu || "Không xác định"}</InfoValue>
         </InfoBlock>
-        <InfoBlock>
+        <InfoBlock key="isbn">
           <InfoLabel>ISBN</InfoLabel>
           <InfoValue>{bookDetail.ISBN || "Không xác định"}</InfoValue>
         </InfoBlock>
-        <InfoBlock>
+        <InfoBlock key="mo-ta">
           <InfoLabel>MÔ TẢ</InfoLabel>
           <InfoValue>
             {bookDetail.mo_ta || "Không có mô tả cho sách này."}
           </InfoValue>
         </InfoBlock>
-        <InfoBlock>
+        <InfoBlock key="ncc">
           <InfoLabel>NHÀ CUNG CẤP</InfoLabel>
           <InfoValue>{bookDetail.ten_ncc || "Không xác định"}</InfoValue>
         </InfoBlock>
-        <InfoBlock>
+        <InfoBlock key="khu-vuc">
           <InfoLabel>KHU VỰC</InfoLabel>
           <InfoValue>{bookDetail.ten_khu_vuc || "Không xác định"}</InfoValue>
         </InfoBlock>
-        <InfoBlock>
+        <InfoBlock key="so-luong-con">
           <InfoLabel>SỐ LƯỢNG CÒN</InfoLabel>
           <InfoValue>
             {bookDetail.so_luong_con > 0
@@ -317,38 +401,38 @@ const BookDetailScreen = ({ route, navigation }: any) => {
         </InfoBlock>
         {bookDetail.thong_tin_phu && (
           <>
-            <InfoBlock>
+            <InfoBlock key="nhan-de-phu">
               <InfoLabel>NHAN ĐỀ PHỤ</InfoLabel>
               <InfoValue>
                 {bookDetail.thong_tin_phu.nhan_de_phu || "Không xác định"}
               </InfoValue>
             </InfoBlock>
-            <InfoBlock>
+            <InfoBlock key="so-cutter-tac-gia">
               <InfoLabel>SỐ CUTTER TÁC GIẢ</InfoLabel>
               <InfoValue>
                 {bookDetail.thong_tin_phu.so_cutter_tac_gia || "Không xác định"}
               </InfoValue>
             </InfoBlock>
-            <InfoBlock>
+            <InfoBlock key="phan-loai-tai-lieu">
               <InfoLabel>PHÂN LOẠI TÀI LIỆU</InfoLabel>
               <InfoValue>
                 {bookDetail.thong_tin_phu.phan_loai_tai_lieu ||
                   "Không xác định"}
               </InfoValue>
             </InfoBlock>
-            <InfoBlock>
+            <InfoBlock key="lan-tai-ban">
               <InfoLabel>LẦN TÁI BẢN</InfoLabel>
               <InfoValue>
                 {bookDetail.thong_tin_phu.lan_tai_ban || "Không xác định"}
               </InfoValue>
             </InfoBlock>
-            <InfoBlock>
+            <InfoBlock key="chu-de">
               <InfoLabel>CHỦ ĐỀ</InfoLabel>
               <InfoValue>
                 {bookDetail.thong_tin_phu.chu_de || "Không xác định"}
               </InfoValue>
             </InfoBlock>
-            <InfoBlock>
+            <InfoBlock key="so-chung-tu">
               <InfoLabel>SỐ CHỨNG TỪ</InfoLabel>
               <InfoValue>
                 {bookDetail.thong_tin_phu.so_chung_tu || "Không xác định"}
@@ -358,13 +442,13 @@ const BookDetailScreen = ({ route, navigation }: any) => {
         )}
       </ScrollView>
 
-      {/* Nút nổi cố định */}
+      {/* Nút nổi cố định - Đọc PDF */}
       {bookDetail.file_dinh_kem && bookDetail.file_dinh_kem.length > 0 && (
         <TouchableOpacity
           onPress={() => Linking.openURL(bookDetail.file_dinh_kem[0].duong_dan)}
           style={{
             position: "absolute",
-            bottom: 120,
+            bottom: 200,
             right: 36,
             backgroundColor: "#2AA3AA",
             width: 56,
@@ -383,6 +467,29 @@ const BookDetailScreen = ({ route, navigation }: any) => {
         </TouchableOpacity>
       )}
 
+      {/* Nút nổi cố định - Đánh giá */}
+      <TouchableOpacity
+        onPress={() => setReviewModalVisible(true)}
+        style={{
+          position: "absolute",
+          bottom: 120,
+          right: 36,
+          backgroundColor: "#FFD700",
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          justifyContent: "center",
+          alignItems: "center",
+          elevation: 8,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+        }}
+      >
+        <Ionicons name="star-outline" size={24} color="#fff" />
+      </TouchableOpacity>
+
       {/* Nút dưới */}
       <BottomButtons>
         <WishlistButton onPress={handleExtend} disabled={processing}>
@@ -394,6 +501,118 @@ const BookDetailScreen = ({ route, navigation }: any) => {
           <ButtonText style={{ color: "#2AA3AA" }}>Yêu cầu trả</ButtonText>
         </ShelfButton>
       </BottomButtons>
+
+      {/* Modal đánh giá */}
+      <Modal
+        visible={reviewModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setReviewModalVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 12,
+              padding: 20,
+              width: "90%",
+              maxHeight: "70%",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "bold",
+                marginBottom: 16,
+                textAlign: "center",
+              }}
+            >
+              Đánh giá sách
+            </Text>
+
+            {/* Chọn số sao */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                marginBottom: 16,
+              }}
+            >
+              {renderStars(newReview.stars, true)}
+            </View>
+
+            {/* Nhập bình luận */}
+            <TextInput
+              placeholder="Nhập bình luận của bạn..."
+              value={newReview.content}
+              onChangeText={(text) =>
+                setNewReview({ ...newReview, content: text })
+              }
+              multiline
+              numberOfLines={4}
+              style={{
+                borderWidth: 1,
+                borderColor: "#ddd",
+                borderRadius: 8,
+                padding: 12,
+                marginBottom: 16,
+                textAlignVertical: "top",
+              }}
+            />
+
+            {/* Nút hành động */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => setReviewModalVisible(false)}
+                style={{
+                  backgroundColor: "#ccc",
+                  padding: 12,
+                  borderRadius: 8,
+                  flex: 1,
+                  marginRight: 8,
+                }}
+              >
+                <Text style={{ textAlign: "center", fontWeight: "bold" }}>
+                  Hủy
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSubmitReview}
+                disabled={processing}
+                style={{
+                  backgroundColor: "#2AA3AA",
+                  padding: 12,
+                  borderRadius: 8,
+                  flex: 1,
+                  marginLeft: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    color: "#fff",
+                  }}
+                >
+                  {processing ? "Đang gửi..." : "Gửi đánh giá"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Container>
   );
 };
