@@ -7,6 +7,7 @@ import {
   Dimensions,
   Animated,
   StyleSheet,
+  TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -200,7 +201,10 @@ export default function LibraryScreen() {
         <Header>
           <View style={{ width: 40 }} />
           <Title>Thư viện</Title>
-          <SearchButton activeOpacity={0.7}>
+          <SearchButton
+            activeOpacity={0.7}
+            onPress={() => (navigation as any).navigate("Search")}
+          >
             <Ionicons name="search-outline" size={22} color="#222" />
           </SearchButton>
         </Header>
@@ -244,29 +248,52 @@ export default function LibraryScreen() {
 
           {/* Icon bar */}
           <IconBar>
-            <IconItem key="categories">
+            <TouchableOpacity
+              key="categories"
+              style={styles.iconItem}
+              activeOpacity={0.7}
+              onPress={() => (navigation as any).navigate("Thư viện")}
+            >
               <Ionicons name="grid-outline" size={28} color="#2aa3a3" />
-              <IconLabel>Thể loại</IconLabel>
-            </IconItem>
-            <IconItem key="ranking">
+              <Text style={styles.iconLabel}>Thể loại</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              key="ranking"
+              style={styles.iconItem}
+              activeOpacity={0.7}
+            >
               <Ionicons name="bar-chart-outline" size={28} color="#2aa3a3" />
-              <IconLabel>Xếp hạng</IconLabel>
-            </IconItem>
-            <IconItem key="filter">
+              <Text style={styles.iconLabel}>Xếp hạng</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              key="filter"
+              style={styles.iconItem}
+              activeOpacity={0.7}
+              onPress={() => (navigation as any).navigate("Thư viện")}
+            >
               <Ionicons name="filter-outline" size={28} color="#2aa3a3" />
-              <IconLabel>Bộ lọc</IconLabel>
-            </IconItem>
-            <IconItem key="news">
+              <Text style={styles.iconLabel}>Bộ lọc</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              key="news"
+              style={styles.iconItem}
+              activeOpacity={0.7}
+              onPress={() => (navigation as any).navigate("News")}
+            >
               <Ionicons name="book-outline" size={28} color="#2aa3a3" />
-              <IconLabel>Tin tức</IconLabel>
-            </IconItem>
+              <Text style={styles.iconLabel}>Tin tức</Text>
+            </TouchableOpacity>
           </IconBar>
 
           {/* Section: Sách mới cập nhật */}
           <SectionBlock>
             <SectionHeader>
               <SectionTitle>SÁCH MỚI CẬP NHẬT</SectionTitle>
-              <SeeMore>Xem thêm {">"}</SeeMore>
+              <TouchableOpacity
+                onPress={() => (navigation as any).navigate("Thư viện")}
+              >
+                <SeeMore>Xem thêm {">"}</SeeMore>
+              </TouchableOpacity>
             </SectionHeader>
             <RowHorizontal horizontal showsHorizontalScrollIndicator={false}>
               {newBooks.map((book: any, i) => (
@@ -300,7 +327,11 @@ export default function LibraryScreen() {
           <ListBlock>
             <SectionHeader>
               <SectionTitle>SÁCH ĐỀ CỬ</SectionTitle>
-              <SeeMore>Xem thêm {">"}</SeeMore>
+              <TouchableOpacity
+                onPress={() => (navigation as any).navigate("Thư viện")}
+              >
+                <SeeMore>Xem thêm {">"}</SeeMore>
+              </TouchableOpacity>
             </SectionHeader>
 
             {recommendedBooks.map((book: any, i) => (
@@ -329,7 +360,11 @@ export default function LibraryScreen() {
           <SectionBlock>
             <SectionHeader>
               <SectionTitle>SÁCH NỔI BẬT</SectionTitle>
-              <SeeMore>Xem thêm {">"}</SeeMore>
+              <TouchableOpacity
+                onPress={() => (navigation as any).navigate("Thư viện")}
+              >
+                <SeeMore>Xem thêm {">"}</SeeMore>
+              </TouchableOpacity>
             </SectionHeader>
             <RowHorizontal horizontal showsHorizontalScrollIndicator={false}>
               {featuredBooks.map((book: any, i) => (
@@ -361,7 +396,11 @@ export default function LibraryScreen() {
           <ListBlock>
             <SectionHeader>
               <SectionTitle>SÁCH XEM NHIỀU</SectionTitle>
-              <SeeMore>Xem thêm {">"}</SeeMore>
+              <TouchableOpacity
+                onPress={() => (navigation as any).navigate("Thư viện")}
+              >
+                <SeeMore>Xem thêm {">"}</SeeMore>
+              </TouchableOpacity>
             </SectionHeader>
 
             {mostViewedBooks.map((book: any, i) => (
@@ -399,5 +438,19 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     letterSpacing: 0.5,
+  },
+  iconItem: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginHorizontal: 8,
+  },
+  iconLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#6B7280",
+    marginTop: 4,
+    textAlign: "center",
   },
 });

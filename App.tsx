@@ -16,10 +16,17 @@ import HelpDetailScreen from "./src/screens/HelpDetailScreen";
 import ChatBoxScreen from "./src/screens/ChatBoxScreen";
 import BookShelf from "./src/screens/BookshelfScreen";
 import NotificationSettingsScreen from "./src/screens/NotificationSettingsScreen";
+import NotificationsScreen from "./src/screens/NotificationsScreen";
 import FineScreen from "./src/screens/FineScreen";
+import BorrowingHistoryScreen from "./src/screens/BorrowingHistoryScreen";
+import BorrowingDetailScreen from "./src/screens/BorrowingDetailScreen";
+import NewsScreen from "./src/screens/NewsScreen";
+import SearchScreen from "./src/screens/SearchScreen";
 import { ThemeProvider } from "./src/styles/ThemeContext";
 import { AuthProvider, useAuth } from "./src/contexts/AuthContext";
 import LoginScreen from "./src/screens/LoginScreen";
+import LeaderboardSelection from "./src/screens/LeaderboardSelection";
+import LeaderboardDetail from "./src/screens/LeaderboardDetail";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -67,7 +74,7 @@ function MainTabs() {
     >
       <Tab.Screen name="Tủ sách" component={LibraryScreen} />
       <Tab.Screen name="Thư viện" component={BookScreen} />
-      <Tab.Screen name="Thương phố" component={LibraryScreen} />
+      <Tab.Screen name="Thương phố" component={LeaderboardSelection} />
       <Tab.Screen name="Tường" component={BookShelf} />
       <Tab.Screen name="Tài khoản" component={ProfileScreen} />
     </Tab.Navigator>
@@ -106,6 +113,18 @@ function AppContent() {
               component={NotificationSettingsScreen}
             />
             <Stack.Screen name="FineScreen" component={FineScreen} />
+            <Stack.Screen
+              name="BorrowingHistory"
+              component={BorrowingHistoryScreen}
+            />
+            <Stack.Screen
+              name="BorrowingDetail"
+              component={BorrowingDetailScreen}
+            />
+            <Stack.Screen name="News" component={NewsScreen} />
+            <Stack.Screen name="Search" component={SearchScreen} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} />
+            <Stack.Screen name="LeaderboardDetail" component={LeaderboardDetail} />
           </>
         ) : (
           <Stack.Screen name="Login" component={LoginScreen} />

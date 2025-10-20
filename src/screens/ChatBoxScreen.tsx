@@ -20,6 +20,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import Header from "../fontA/Header";
 import Card from "../fontA/Card";
+import { API_URL } from "../Api/config";
 
 const { width } = Dimensions.get("window");
 
@@ -94,7 +95,7 @@ const ManHinhChatbox = ({ navigation }: any) => {
         return;
       }
 
-      const response = await fetch("http://localhost:3000/api/chat", {
+      const response = await fetch(`${API_URL}/api/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -168,7 +169,7 @@ const ManHinhChatbox = ({ navigation }: any) => {
         return;
       }
 
-      const response = await fetch("http://localhost:3000/api/chat", {
+      const response = await fetch(`${API_URL}/api/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

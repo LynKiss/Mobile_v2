@@ -17,9 +17,11 @@ import { useNavigation } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import styled from "styled-components/native";
+import { API_URL } from "../Api/config";
 
 // ===== Styled Components =====
 const Container = styled.View`
+  padding-top: 48px;
   flex: 1;
   background-color: #ffffff;
 `;
@@ -181,12 +183,9 @@ const EditProfileScreen = () => {
       if (!token) return navigation.goBack();
 
       try {
-        const res = await fetch(
-          "http://localhost:3000/api/nguoi_dung/profile/me",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const res = await fetch(`${API_URL}/api/nguoi_dung/profile/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const data = await res.json();
         if (res.ok) {
           setHoTen(data.ho_ten);
@@ -232,14 +231,11 @@ const EditProfileScreen = () => {
         formData.append("avatar", { uri: avatar, name, type } as any);
       }
 
-      const res = await fetch(
-        `http://localhost:3000/api/nguoi_dung/${userId}`,
-        {
-          method: "PUT",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        }
-      );
+      const res = await fetch(`${API_URL}/api/nguoi_dung/${userId}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
 
       if (res.ok) {
         Alert.alert("Thành công", "Đã lưu thay đổi!", [

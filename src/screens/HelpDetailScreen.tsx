@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
+import { API_URL } from "../Api/config";
 
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -102,12 +103,9 @@ const ManHinhChiTietHoTro = ({ navigation, route }: any) => {
       const token = await AsyncStorage.getItem("userToken");
       if (!token) return;
 
-      const response = await fetch(
-        `http://localhost:3000/api/ho_tro/${supportItem.id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await fetch(`${API_URL}/api/ho_tro/${supportItem.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.ok) {
         const updated = await response.json();
@@ -358,7 +356,7 @@ const ManHinhChiTietHoTro = ({ navigation, route }: any) => {
                 try {
                   const token = await AsyncStorage.getItem("userToken");
                   const res = await fetch(
-                    `http://localhost:3000/api/ho_tro/${supportItem.id}/replies`,
+                    `${API_URL}/api/ho_tro/${supportItem.id}/replies`,
                     {
                       method: "POST",
                       headers: {

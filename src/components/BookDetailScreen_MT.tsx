@@ -95,17 +95,14 @@ const BookDetailScreen = ({ route, navigation }: any) => {
             try {
               setProcessing(true);
               const token = await AsyncStorage.getItem("userToken");
-              const res = await fetch(
-                `http://localhost:3000/api/tra-sach/request`,
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                  },
-                  body: JSON.stringify({ ma_phieu_muon: book.ma_phieu_muon }),
-                }
-              );
+              const res = await fetch(`${API_URL}/api/tra-sach/request`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ ma_phieu_muon: book.ma_phieu_muon }),
+              });
 
               if (!res.ok) throw new Error("Không thể gửi yêu cầu trả sách");
 
@@ -138,7 +135,7 @@ const BookDetailScreen = ({ route, navigation }: any) => {
     try {
       setProcessing(true);
       const token = await AsyncStorage.getItem("userToken");
-      const res = await fetch(`${API_URL}/api/phieu_muon/gia-han`, {
+      const res = await fetch(`${API_URL}/api/gia-han`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

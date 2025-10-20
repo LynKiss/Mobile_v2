@@ -398,12 +398,6 @@ const LoginScreen = ({ navigation }: Props) => {
                   <Text style={styles.linkText}>Quên mật khẩu?</Text>
                 </TouchableOpacity>
               </View>
-
-              <View style={styles.demoContainer}>
-                <Text style={styles.demoTitle}>🌟 Thông tin Demo</Text>
-                <Text style={styles.demoText}>📧 Email: a@example.com</Text>
-                <Text style={styles.demoText}>🔐 Mật khẩu: 123456</Text>
-              </View>
             </View>
           </Animated.View>
         </ScrollView>

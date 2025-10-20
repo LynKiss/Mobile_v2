@@ -13,6 +13,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import { API_URL } from "../Api/config";
 
 interface SupportItem {
   id: number;
@@ -67,7 +68,7 @@ const ManHinhHoTro = ({ navigation }: any) => {
       const token = await AsyncStorage.getItem("userToken");
       if (!token) return;
 
-      const response = await fetch("http://localhost:3000/api/ho_tro/me", {
+      const response = await fetch(`${API_URL}/api/ho_tro/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -99,7 +100,7 @@ const ManHinhHoTro = ({ navigation }: any) => {
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem("userToken");
-      const response = await fetch("http://localhost:3000/api/ho_tro", {
+      const response = await fetch(`${API_URL}/api/ho_tro`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -130,7 +131,7 @@ const ManHinhHoTro = ({ navigation }: any) => {
   };
 
   const handleSupportItemPress = (item: SupportItem) => {
-    navigation.navigate("SupportDetail", { supportItem: item });
+    navigation.navigate("HelpDetail", { supportItem: item });
   };
 
   const filteredSupportHistory = supportHistory.filter(
@@ -178,7 +179,7 @@ const ManHinhHoTro = ({ navigation }: any) => {
         >
           Hỗ trợ & Yêu cầu
         </Text>
-        <TouchableOpacity onPress={() => navigation.navigate("ManHinhChatbox")}>
+        <TouchableOpacity onPress={() => navigation.navigate("ChatBox")}>
           <Ionicons name="chatbubble-ellipses" size={24} color="#111827" />
         </TouchableOpacity>
       </View>

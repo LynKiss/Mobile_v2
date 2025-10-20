@@ -127,7 +127,7 @@ export const Divider = styled.View`
 
 export const NotificationIcon = styled.TouchableOpacity`
   position: absolute;
-  top: 16px;
+  top: 54px;
   right: 16px;
   background-color: #2aa3a3;
   width: 40px;

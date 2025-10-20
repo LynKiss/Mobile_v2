@@ -9,4 +9,7 @@ export type RootStackParamList = {
   ManHinhHoTro: undefined;
   SupportDetail: undefined;
   ManHinhChatbox: undefined;
+  BorrowingHistory: undefined;
+  BorrowingDetail: { slipId: number };
+  Notifications: undefined;
 };

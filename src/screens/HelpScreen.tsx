@@ -129,9 +129,9 @@ const HelpScreen = ({ navigation }: any) => {
     );
   };
 
-  const handleError = () => navigation.navigate("ManHinhHoTro");
+  const handleError = () => navigation.navigate("HelpMain");
 
-  const handleChatbot = () => navigation.navigate("ManHinhChatbox");
+  const handleChatbot = () => navigation.navigate("ChatBox");
 
   const handleContact = () => {
     Alert.alert(
