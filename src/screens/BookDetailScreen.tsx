@@ -180,9 +180,9 @@ const BookDetailScreen: React.FC<any> = ({ navigation }) => {
 
         if (res.ok) {
           const data = await res.json();
-          const isInWishlist = data.some(
-            (b: any) => b.ma_sach === book.ma_sach
-          );
+          const isInWishlist = Array.isArray(data)
+            ? data.some((b: any) => b.ma_sach === book.ma_sach)
+            : false;
           setIsInWishlist(isInWishlist);
         }
       } catch (err) {
