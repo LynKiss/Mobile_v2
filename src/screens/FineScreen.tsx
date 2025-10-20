@@ -360,6 +360,7 @@ export default function FineScreen({ navigation }: any) {
     <View style={{ flex: 1 }}>
       <View
         style={{
+          paddingTop: 60,
           flexDirection: "row",
           alignItems: "center",
           paddingHorizontal: 16,

@@ -1,10 +1,11 @@
+// BookDetailScreen.style.ts
 import styled from "styled-components/native";
 import { Dimensions } from "react-native";
 
 const { width } = Dimensions.get("window");
-const TAB_COUNT = 3;
-const TAB_WIDTH = width / TAB_COUNT; // width mỗi tab (dùng làm tham chiếu khi translate)
-const UNDERLINE_WIDTH = 56; // độ rộng vạch xanh (bạn có thể điều chỉnh)
+export const TAB_COUNT = 3;
+export const TAB_WIDTH = width / TAB_COUNT; // numeric width mỗi tab
+export const UNDERLINE_WIDTH = 56; // bạn có thể chỉnh lại
 
 export const Container = styled.View`
   padding-top: 32px;
@@ -108,16 +109,15 @@ export const TabText = styled.Text<{ active?: boolean }>`
   color: ${(p) => (p.active ? "#2AA3AA" : "#8C97A3")};
 `;
 
-/* Vạch underline (kích thước cố định, sẽ translate bằng Animated) */
+/* Vạch underline (kích thước cố định, animation sẽ thay đổi left bằng Animated style numeric) */
 export const TabUnderline = styled.View`
   position: absolute;
-  bottom: 0;
-  left: 0;
+  bottom: 6px;
+  left: 0px;
   width: ${UNDERLINE_WIDTH}px;
   height: 3px;
   background-color: #2aa3aa;
   border-radius: 3px;
-  margin-bottom: 6px;
 `;
 
 /* dividing line */
@@ -154,8 +154,6 @@ export const BottomButtons = styled.View`
   left: 16px;
   right: 16px;
   flex-direction: row;
-  justify-content: space-between;
-  gap: 12px;
 `;
 
 export const WishlistButton = styled.TouchableOpacity`
@@ -232,7 +230,7 @@ export const ReviewText = styled.Text`
   line-height: 20px;
 `;
 
-/* Modal box helpers (if you want to style modal internals here) */
+/* Modal box helpers */
 export const ModalBox = styled.View`
   width: 100%;
   background-color: #fff;
