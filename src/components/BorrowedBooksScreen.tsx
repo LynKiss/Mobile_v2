@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,124 +6,245 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../styles/ThemeContext";
+import { API_URL } from "../Api/config";
 
-const borrowedBooks = [
-  {
-    id: "1",
-    title: "Thinking, Fast and Slow",
-    author: "Daniel Kahneman",
-    cover:
-      "https://images-na.ssl-images-amazon.com/images/I/41jEbK-jG+L._SX324_BO1,204,203,200_.jpg",
-    dueDate: "20/10/2025",
-  },
-  {
-    id: "2",
-    title: "Atomic Habits",
-    author: "James Clear",
-    cover:
-      "https://m.media-amazon.com/images/I/91bYsX41DVL._AC_UF894,1000_QL80_.jpg",
-    dueDate: "25/10/2025",
-  },
-  {
-    id: "3",
-    title: "Deep Work",
-    author: "Cal Newport",
-    cover:
-      "https://m.media-amazon.com/images/I/71g2ednj0JL._AC_UF1000,1000_QL80_.jpg",
-    dueDate: "15/10/2025",
-  },
-  {
-    id: "4",
-    title: "The Power of Habit",
-    author: "Charles Duhigg",
-    cover:
-      "https://m.media-amazon.com/images/I/81KqrwS1nNL._AC_UF1000,1000_QL80_.jpg",
-    dueDate: "18/10/2025",
-  },
-  {
-    id: "5",
-    title: "Clean Code",
-    author: "Robert C. Martin",
-    cover:
-      "https://m.media-amazon.com/images/I/41xShlnTZTL._SX374_BO1,204,203,200_.jpg",
-    dueDate: "22/10/2025",
-  },
-];
+interface BookDetail {
+  ma_sach: number;
+  tieu_de: string;
+  tac_gia: string;
+  hinh_bia: string;
+  // Add other properties as needed
+}
 
-// 🔸 Hàm convert ngày
-const parseDate = (dateString: string) => {
-  const [day, month, year] = dateString.split("/").map(Number);
-  return new Date(year, month - 1, day);
-};
+interface Book {
+  ma_sach: number;
+  tieu_de: string;
+  tac_gia: string;
+  hinh_bia: string;
+  dueDate: string;
+  ma_phieu_muon: number;
+}
 
-// 🔸 Phân loại sách theo hạn
-const categorizeBooks = (books: any[]) => {
-  const today = new Date();
-  const threeDays = 3 * 24 * 60 * 60 * 1000;
-  const current: any[] = [];
-  const nearDue: any[] = [];
-  const overdue: any[] = [];
-
-  books.forEach((book) => {
-    const due = parseDate(book.dueDate);
-    const diff = due.getTime() - today.getTime();
-    if (diff < 0) overdue.push(book);
-    else if (diff <= threeDays) nearDue.push(book);
-    else current.push(book);
-  });
-
-  return { current, nearDue, overdue };
-};
-
-const BorrowedBooksScreen = () => {
+const BorrowedBooksScreen = ({ navigation }: any) => {
   const { theme } = useTheme();
-  const { current, nearDue, overdue } = categorizeBooks(borrowedBooks);
-
-  // ✅ state quản lý mở rộng từng nhóm
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({
     current: false,
     nearDue: false,
     overdue: false,
   });
 
-  const renderItem = ({ item }: any) => (
-    <View style={[styles.card, { backgroundColor: "#fff" }]}>
-      <Image source={{ uri: item.cover }} style={styles.cover} />
+  // 🔁 Load lại khi focus
+  useEffect(() => {
+    if (navigation?.addListener) {
+      const unsubscribe = navigation.addListener("focus", fetchBorrowedBooks);
+      return unsubscribe;
+    } else {
+      fetchBorrowedBooks();
+    }
+  }, []);
+
+  // 🧠 Chuẩn hoá tiếng Việt
+  const normalize = (str: string) =>
+    (str || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/đ/g, "d")
+      .replace(/[^a-z0-9]/g, "")
+      .trim();
+
+  // 📚 Lấy danh sách sách mượn
+  const fetchBorrowedBooks = async () => {
+    try {
+      setLoading(true);
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        Alert.alert("Lỗi", "Vui lòng đăng nhập lại");
+        setLoading(false);
+        return;
+      }
+
+      // 🧾 Lấy danh sách phiếu mượn
+      const response = await fetch(`${API_URL}/api/phieu_muon/lich-su`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("Không thể tải danh sách phiếu mượn");
+
+      const slipsResponse = await response.json();
+      const slips = Array.isArray(slipsResponse.data)
+        ? slipsResponse.data
+        : slipsResponse;
+
+      console.log("📘 Danh sách phiếu:", slips.length);
+
+      // ✅ Lọc phiếu "Đang mượn"
+      const activeSlips = slips.filter(
+        (s: any) => normalize(s.trang_thai_phieu || s.trang_thai) === "dangmuon"
+      );
+
+      console.log("✅ Phiếu đang mượn:", activeSlips.length);
+
+      if (activeSlips.length === 0) {
+        setBooks([]);
+        setLoading(false);
+        return;
+      }
+
+      const allBooks: Book[] = [];
+
+      // 🔁 Duyệt từng phiếu mượn
+      for (const slip of activeSlips) {
+        const detailRes = await fetch(
+          `${API_URL}/api/phieu_muon/lich-su/${slip.ma_phieu_muon}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (!detailRes.ok) {
+          console.warn(
+            `⚠️ Không lấy được chi tiết phiếu ${slip.ma_phieu_muon}`
+          );
+          continue;
+        }
+
+        const detailData = await detailRes.json();
+        const chiTiet = Array.isArray(detailData)
+          ? detailData
+          : detailData.data?.chi_tiet_muon ||
+            detailData.data?.chi_tiet ||
+            detailData.chi_tiet_muon ||
+            [];
+
+        if (!Array.isArray(chiTiet) || chiTiet.length === 0) {
+          console.warn(`⚠️ Phiếu ${slip.ma_phieu_muon} không có chi tiết.`);
+          continue;
+        }
+
+        // 📖 Duyệt từng sách trong phiếu và lấy chi tiết thật
+        for (const item of chiTiet) {
+          try {
+            const bookRes = await fetch(`${API_URL}/api/sach/${item.ma_sach}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+
+            let bookInfo: BookDetail | null = null;
+            if (bookRes.ok) {
+              const data = await bookRes.json();
+              bookInfo = data.data as BookDetail | null;
+            }
+
+            allBooks.push({
+              ma_sach: item.ma_sach,
+              tieu_de: bookInfo?.tieu_de || item.ten_sach || "Sách chưa rõ tên",
+              tac_gia: bookInfo?.tac_gia || "Đang cập nhật",
+              hinh_bia:
+                bookInfo?.hinh_bia ||
+                `https://picsum.photos/seed/${item.ma_sach}/200/300`,
+              dueDate: item.han_tra || slip.han_tra,
+              ma_phieu_muon: slip.ma_phieu_muon,
+            });
+          } catch (err) {
+            console.warn("⚠️ Lỗi lấy chi tiết sách:", item.ma_sach, err);
+          }
+        }
+      }
+
+      console.log("📚 Tổng số sách đang mượn:", allBooks.length);
+      setBooks(allBooks);
+    } catch (err) {
+      console.error("❌ Lỗi khi tải sách đang mượn:", err);
+      Alert.alert("Lỗi", "Không thể tải danh sách sách mượn");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ⏰ Phân loại sách
+  const categorizeBooks = (books: Book[]) => {
+    const today = new Date();
+    const threeDays = 3 * 24 * 60 * 60 * 1000;
+    const current: Book[] = [];
+    const nearDue: Book[] = [];
+    const overdue: Book[] = [];
+
+    books.forEach((book) => {
+      const due = new Date(book.dueDate);
+      const diff = due.getTime() - today.getTime();
+      if (diff < 0) overdue.push(book);
+      else if (diff <= threeDays) nearDue.push(book);
+      else current.push(book);
+    });
+
+    return { current, nearDue, overdue };
+  };
+
+  const { current, nearDue, overdue } = categorizeBooks(books);
+
+  const renderItem = ({ item }: { item: Book }) => (
+    <TouchableOpacity
+      onPress={() =>
+        navigation?.navigate?.("BookDetailScreen_MT", {
+          book: item,
+        })
+      }
+      style={[styles.card, { backgroundColor: theme.colors.surface || "#fff" }]}
+    >
+      <Image source={{ uri: item.hinh_bia }} style={styles.cover} />
       <View style={{ flex: 1 }}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.author}>{item.author}</Text>
+        <Text style={[styles.title, { color: theme.colors.text }]}>
+          {item.tieu_de}
+        </Text>
+        <Text style={[styles.author, { color: theme.colors.textSecondary }]}>
+          {item.tac_gia}
+        </Text>
         <View style={styles.row}>
           <Ionicons
             name="calendar-outline"
             size={16}
             color={theme.colors.primary}
           />
-          <Text style={styles.dueDate}>Hạn trả: {item.dueDate}</Text>
+          <Text style={[styles.dueDate, { color: theme.colors.primary }]}>
+            Hạn trả: {new Date(item.dueDate).toLocaleDateString("vi-VN")}
+          </Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   const renderSection = (
     key: string,
     title: string,
-    data: any[],
+    data: Book[],
     color: string
   ) => {
     if (data.length === 0) return null;
-
     const isExpanded = expanded[key];
     const visibleData = isExpanded ? data : data.slice(0, 2);
 
     return (
-      <View style={{ marginBottom: 20 }}>
-        <Text style={[styles.sectionTitle, { color }]}>{title}</Text>
+      <View style={{ marginBottom: 20, paddingHorizontal: 16 }}>
+        <View
+          style={{
+            marginBottom: 16,
+            paddingLeft: 10,
+            borderLeftWidth: 3,
+            borderLeftColor: color,
+          }}
+        >
+          <Text style={{ fontWeight: "500", fontSize: 15, color: "#111111" }}>
+            {title} ({data.length})
+          </Text>
+        </View>
         <FlatList
           data={visibleData}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => `${item.ma_phieu_muon}-${item.ma_sach}`}
           renderItem={renderItem}
           scrollEnabled={false}
         />
@@ -143,17 +264,39 @@ const BorrowedBooksScreen = () => {
     );
   };
 
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text
+          style={[styles.loadingText, { color: theme.colors.textSecondary }]}
+        >
+          Đang tải sách mượn...
+        </Text>
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      {renderSection("current", "📘 Sách đang mượn", current, "#007AFF")}
+    <View style={{ flex: 1, backgroundColor: "#f5f7fa" }}>
+      {renderSection("current", "📘 Sách đang mượn", current, "#2aa3a3")}
       {renderSection("nearDue", "⏳ Sách sắp đến hạn", nearDue, "#FFA500")}
       {renderSection("overdue", "⛔ Sách quá hạn", overdue, "#FF3B30")}
+      {books.length === 0 && !loading && (
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyText, { color: "#9b9b9b" }]}>
+            Không có sách đang mượn
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
+  loadingContainer: { justifyContent: "center", alignItems: "center" },
+  loadingText: { marginTop: 10, fontSize: 16 },
   card: {
     flexDirection: "row",
     borderRadius: 12,
@@ -165,13 +308,15 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   cover: { width: 60, height: 90, borderRadius: 8, marginRight: 12 },
-  title: { fontSize: 16, fontWeight: "600", color: "#1D1D1F" },
-  author: { color: "#6B6B6B", marginBottom: 6 },
+  title: { fontSize: 16, fontWeight: "600" },
+  author: { marginBottom: 6 },
   row: { flexDirection: "row", alignItems: "center" },
-  dueDate: { color: "#007AFF", marginLeft: 4, fontSize: 13 },
+  dueDate: { marginLeft: 4, fontSize: 13 },
   sectionTitle: { fontSize: 18, fontWeight: "700", marginBottom: 8 },
   toggleButton: { paddingVertical: 6, alignItems: "center" },
-  toggleText: { color: "#007AFF", fontWeight: "600" },
+  toggleText: { fontWeight: "600" },
+  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  emptyText: { fontSize: 16 },
 });
 
 export default BorrowedBooksScreen;

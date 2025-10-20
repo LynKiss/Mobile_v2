@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import LibraryScreen from "./src/screens/LibraryScreen";
 import BookScreen from "./src/screens/BookScreens";
 import BookDetailScreen from "./src/screens/BookDetailScreen";
+import BookDetailScreen_MT from "./src/components/BookDetailScreen_MT";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import HelpScreen from "./src/screens/HelpScreen";
 import EditProfileScreen from "./src/screens/EditProfileScreen";
@@ -15,6 +16,8 @@ import HelpDetailScreen from "./src/screens/HelpDetailScreen";
 import ChatBoxScreen from "./src/screens/ChatBoxScreen";
 import BookShelf from "./src/screens/BookshelfScreen";
 import { ThemeProvider } from "./src/styles/ThemeContext";
+import { AuthProvider, useAuth } from "./src/contexts/AuthContext";
+import LoginScreen from "./src/screens/LoginScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -72,18 +75,27 @@ function MainTabs() {
 export default function App() {
   return (
     <ThemeProvider>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {/* Stack cấp cao nhất */}
-          <Stack.Screen name="Main" component={MainTabs} />
-          <Stack.Screen name="BookDetail" component={BookDetailScreen} />
-          <Stack.Screen name="Help" component={HelpScreen} />
-          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
-          <Stack.Screen name="ManHinhHoTro" component={HelpMain} />
-          <Stack.Screen name="SupportDetail" component={HelpDetailScreen} />
-          <Stack.Screen name="ManHinhChatbox" component={ChatBoxScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <AuthProvider>
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{
+              headerShown: false,
+            }}
+          >
+            <Stack.Screen name="MainTabs" component={MainTabs} />
+            <Stack.Screen name="BookDetail" component={BookDetailScreen} />
+            <Stack.Screen
+              name="BookDetailScreen_MT"
+              component={BookDetailScreen_MT}
+            />
+            <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+            <Stack.Screen name="HelpMain" component={HelpMain} />
+            <Stack.Screen name="HelpDetail" component={HelpDetailScreen} />
+            <Stack.Screen name="ChatBox" component={ChatBoxScreen} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

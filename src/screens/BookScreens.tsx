@@ -16,35 +16,25 @@ import {
   Dimensions,
   ScrollView,
   LayoutChangeEvent,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { useNavigation } from "@react-navigation/native";
+import { API_URL } from "../Api/config";
 import styles from "../styles/BookScreens.style";
 
 const { width } = Dimensions.get("window");
 
 const categories = [
   "Tất cả",
-  "Huyền Huyễn",
-  "Tiên Hiệp",
-  "Đô Thị",
-  "Trọng Sinh",
-  "Hệ Thống",
-  "Võng Du",
-  "Cổ Đại",
+  "Văn học",
+  "Khoa học",
+  "Công nghệ",
+  "Khác",
+  "Lịch sử",
 ];
-
-const books = new Array(12).fill(0).map((_, i) => ({
-  id: i + 1,
-  title:
-    i % 2 === 0
-      ? "Đấu Phá Thương Khung"
-      : "Vạn Cổ Thần Đế – Phong Hỏa Hí Chư Hầu",
-  author: "Thiên Tàm Thổ Đậu",
-  thumb: `https://picsum.photos/200/300?random=${i + 10}`,
-}));
 
 export default function BookScreens() {
   const navigation = useNavigation();
@@ -54,6 +44,8 @@ export default function BookScreens() {
   const [tabLayouts, setTabLayouts] = useState<{ x: number; width: number }[]>(
     []
   );
+  const [books, setBooks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const scrollX = useRef(new Animated.Value(0)).current;
   const flatListRef = useRef<FlatList>(null);
@@ -109,12 +101,23 @@ export default function BookScreens() {
     if (viewMode === "list") {
       return (
         <TouchableOpacity onPress={handlePress} style={styles.listItem}>
-          <Image source={{ uri: item.thumb }} style={styles.listImage} />
+          <Image
+            source={{
+              uri: item.hinh_bia || "https://picsum.photos/200/300?random",
+            }}
+            style={styles.listImage}
+          />
           <View style={styles.listContent}>
             <Text style={styles.bookTitle} numberOfLines={2}>
-              {item.title}
+              {item.tieu_de}
             </Text>
-            <Text style={styles.bookAuthor}>{item.author}</Text>
+            <Text style={styles.bookAuthor}>{item.tac_gia}</Text>
+            <Text style={styles.bookMeta}>
+              SL:{" "}
+              {item.so_luong_con > 0
+                ? `${item.so_luong_con} quyển`
+                : "Sách đang hết"}
+            </Text>
           </View>
         </TouchableOpacity>
       );
@@ -122,31 +125,50 @@ export default function BookScreens() {
 
     return (
       <TouchableOpacity onPress={handlePress} style={styles.gridItem}>
-        <Image source={{ uri: item.thumb }} style={styles.gridImage} />
-        <Text style={styles.gridTitle} numberOfLines={2}>
-          {item.title}
-        </Text>
+        <Image
+          source={{
+            uri: item.hinh_bia || "https://picsum.photos/200/300?random",
+          }}
+          style={styles.gridImage}
+        />
       </TouchableOpacity>
     );
   };
 
-  const renderCategoryPage = (category: string) => (
-    <FlatList
-      data={books}
-      key={viewMode}
-      keyExtractor={(item) => item.id.toString()}
-      renderItem={renderBookItem}
-      numColumns={viewMode === "grid" ? 3 : 1}
-      showsVerticalScrollIndicator={false}
-      columnWrapperStyle={
-        viewMode === "grid" ? { justifyContent: "space-between" } : undefined
-      }
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-      contentContainerStyle={styles.listContainer}
-    />
-  );
+  const renderCategoryPage = (category: string) => {
+    const filteredBooks =
+      category === "Tất cả"
+        ? books
+        : books.filter((book) => book.ten_the_loai === category);
+
+    if (loading) {
+      return (
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" color="#2AA3A3" />
+        </View>
+      );
+    }
+
+    return (
+      <FlatList
+        data={filteredBooks}
+        key={viewMode}
+        keyExtractor={(item) => item.ma_sach.toString()}
+        renderItem={renderBookItem}
+        numColumns={viewMode === "grid" ? 3 : 1}
+        showsVerticalScrollIndicator={false}
+        columnWrapperStyle={
+          viewMode === "grid" ? { justifyContent: "space-between" } : undefined
+        }
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        contentContainerStyle={styles.listContainer}
+      />
+    );
+  };
 
   // underline động — dựa trên vị trí tab và scroll
   const underlineWidth = useMemo(() => {
@@ -170,6 +192,28 @@ export default function BookScreens() {
       centerActiveTab(activeCategory);
     }
   }, [tabLayouts]);
+
+  // Fetch books data
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_URL}/api/sach`);
+        if (response.ok) {
+          const data = await response.json();
+          setBooks(data.data || []);
+        } else {
+          console.error("Failed to fetch books");
+        }
+      } catch (error) {
+        console.error("Error fetching books:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooks();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>

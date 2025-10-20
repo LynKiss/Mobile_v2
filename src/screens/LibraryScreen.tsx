@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native";
 import { API_URL } from "../Api/config";
 import {
   Container,
@@ -57,6 +58,7 @@ const banners = [
 ];
 
 export default function LibraryScreen() {
+  const navigation = useNavigation();
   const [books, setBooks] = useState([]);
   const [newBooks, setNewBooks] = useState([]);
   const [recommendedBooks, setRecommendedBooks] = useState([]);
@@ -83,63 +85,113 @@ export default function LibraryScreen() {
     if (newIdx !== index) setIndex(newIdx);
   };
 
-  // ✅ Load 1 lần duy nhất từ /api/sach/full và xử lý dữ liệu
+  // Load dữ liệu từ 4 API endpoints riêng biệt
   useEffect(() => {
-    const fetchBooks = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_URL}/api/sach/full`);
-        const text = await res.text();
-        if (!text) throw new Error("Empty response");
-        const { data } = JSON.parse(text);
 
-        if (!Array.isArray(data)) return;
+        // Sách mới cập nhật
+        const newBooksRes = await fetch(`${API_URL}/api/sach/new`);
+        if (newBooksRes.ok) {
+          const text = await newBooksRes.text();
+          if (text) {
+            const newBooksData = JSON.parse(text);
+            setNewBooks(newBooksData.data || []);
+          } else {
+            console.error("Empty response for new books");
+          }
+        } else {
+          console.error(
+            "Failed to fetch new books:",
+            newBooksRes.status,
+            await newBooksRes.text()
+          );
+        }
 
-        setBooks(data);
+        // Sách đề cử (sử dụng tất cả sách, giới hạn 5 cuốn)
+        const recommendedRes = await fetch(`${API_URL}/api/sach`);
+        if (recommendedRes.ok) {
+          const text = await recommendedRes.text();
+          if (text) {
+            const recommendedData = JSON.parse(text);
+            setRecommendedBooks((recommendedData.data || []).slice(0, 5));
+          } else {
+            console.error("Empty response for recommended books");
+          }
+        } else {
+          console.error(
+            "Failed to fetch recommended books:",
+            recommendedRes.status,
+            await recommendedRes.text()
+          );
+        }
 
-        // ✅ Phân loại dữ liệu
-        const sortedByDate = [...data].sort(
-          (a, b) => new Date(b.ngay_nhap) - new Date(a.ngay_nhap)
-        );
-        const newData = sortedByDate.slice(0, 8);
+        // Sách xem nhiều nhất
+        const mostViewedRes = await fetch(`${API_URL}/api/sach/most-borrowed`);
+        if (mostViewedRes.ok) {
+          const text = await mostViewedRes.text();
+          if (text) {
+            const mostViewedData = JSON.parse(text);
+            setMostViewedBooks(mostViewedData.data || []);
+          } else {
+            console.error("Empty response for most viewed books");
+          }
+        } else {
+          console.error(
+            "Failed to fetch most viewed books:",
+            mostViewedRes.status,
+            await mostViewedRes.text()
+          );
+        }
 
-        const recommendedData = data
-          .filter((s) => s.de_cu === 1 || s.noi_bat === 1)
-          .slice(0, 4);
-
-        const mostViewedData = [...data]
-          .sort((a, b) => (b.luot_muon || 0) - (a.luot_muon || 0))
-          .slice(0, 4);
-
-        const featuredData = data.filter((s) => s.noi_bat === 1).slice(0, 8);
-
-        setNewBooks(newData);
-        setRecommendedBooks(recommendedData);
-        setMostViewedBooks(mostViewedData);
-        setFeaturedBooks(featuredData);
-      } catch (err) {
-        console.error("Lỗi tải dữ liệu:", err);
+        // Sách nổi bật
+        const featuredRes = await fetch(`${API_URL}/api/sach/noibat`);
+        if (featuredRes.ok) {
+          const text = await featuredRes.text();
+          if (text) {
+            const featuredData = JSON.parse(text);
+            setFeaturedBooks(featuredData.data || []);
+          } else {
+            console.error("Empty response for featured books");
+          }
+        } else {
+          console.error(
+            "Failed to fetch featured books:",
+            featuredRes.status,
+            await featuredRes.text()
+          );
+        }
+      } catch (error) {
+        console.error("Lỗi tải dữ liệu:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBooks();
+    fetchData();
   }, []);
 
-  // fade-in animation
-  const fadeAnims = useRef(newBooks.map(() => new Animated.Value(0))).current;
+  // fade-in animation - create animations dynamically to avoid length mismatch
+  const [fadeAnims, setFadeAnims] = useState<Animated.Value[]>([]);
   useEffect(() => {
-    fadeAnims.forEach((anim) => anim.setValue(0));
-    const seq = newBooks.map((_, i) =>
-      Animated.timing(fadeAnims[i], {
-        toValue: 1,
-        duration: 600,
-        delay: i * 100,
-        useNativeDriver: false,
-      })
-    );
-    Animated.stagger(80, seq).start();
+    if (newBooks.length > 0) {
+      const newAnims = newBooks.map(() => new Animated.Value(0));
+      setFadeAnims(newAnims);
+
+      // Start animation after a brief delay
+      setTimeout(() => {
+        const seq = newAnims.map((anim, i) =>
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: 600,
+            delay: i * 100,
+            useNativeDriver: false,
+          })
+        );
+        Animated.stagger(80, seq).start();
+      }, 100);
+    }
   }, [newBooks]);
 
   return (
@@ -192,19 +244,19 @@ export default function LibraryScreen() {
 
           {/* Icon bar */}
           <IconBar>
-            <IconItem>
+            <IconItem key="categories">
               <Ionicons name="grid-outline" size={28} color="#2aa3a3" />
               <IconLabel>Thể loại</IconLabel>
             </IconItem>
-            <IconItem>
+            <IconItem key="ranking">
               <Ionicons name="bar-chart-outline" size={28} color="#2aa3a3" />
               <IconLabel>Xếp hạng</IconLabel>
             </IconItem>
-            <IconItem>
+            <IconItem key="filter">
               <Ionicons name="filter-outline" size={28} color="#2aa3a3" />
               <IconLabel>Bộ lọc</IconLabel>
             </IconItem>
-            <IconItem>
+            <IconItem key="news">
               <Ionicons name="book-outline" size={28} color="#2aa3a3" />
               <IconLabel>Tin tức</IconLabel>
             </IconItem>
@@ -219,10 +271,17 @@ export default function LibraryScreen() {
             <RowHorizontal horizontal showsHorizontalScrollIndicator={false}>
               {newBooks.map((book: any, i) => (
                 <Animated.View
-                  key={book.ma_sach}
+                  key={book.ma_sach || `new-${i}`}
                   style={{ opacity: fadeAnims[i] || 1, marginRight: 12 }}
                 >
-                  <SmallCard activeOpacity={0.85}>
+                  <SmallCard
+                    activeOpacity={0.85}
+                    onPress={() =>
+                      (navigation as any).navigate("BookDetail", {
+                        ma_sach: book.ma_sach,
+                      })
+                    }
+                  >
                     <SmallCover
                       source={{
                         uri:
@@ -244,8 +303,14 @@ export default function LibraryScreen() {
               <SeeMore>Xem thêm {">"}</SeeMore>
             </SectionHeader>
 
-            {recommendedBooks.map((book: any) => (
-              <ListItem key={book.ma_sach} activeOpacity={0.85}>
+            {recommendedBooks.map((book: any, i) => (
+              <ListItem
+                key={book.ma_sach || `recommended-${i}`}
+                activeOpacity={0.85}
+                onPress={() =>
+                  (navigation as any).navigate("BookDetail", { book })
+                }
+              >
                 <ListThumb
                   source={{
                     uri: book.hinh_bia || "https://picsum.photos/80/120?random",
@@ -269,10 +334,15 @@ export default function LibraryScreen() {
             <RowHorizontal horizontal showsHorizontalScrollIndicator={false}>
               {featuredBooks.map((book: any, i) => (
                 <Animated.View
-                  key={`featured-${book.ma_sach}`}
+                  key={`featured-${book.ma_sach || i}`}
                   style={{ opacity: fadeAnims[i] || 1, marginRight: 12 }}
                 >
-                  <SmallCard activeOpacity={0.85}>
+                  <SmallCard
+                    activeOpacity={0.85}
+                    onPress={() =>
+                      (navigation as any).navigate("BookDetail", { book })
+                    }
+                  >
                     <SmallCover
                       source={{
                         uri:
@@ -294,8 +364,14 @@ export default function LibraryScreen() {
               <SeeMore>Xem thêm {">"}</SeeMore>
             </SectionHeader>
 
-            {mostViewedBooks.map((book: any) => (
-              <ListItem key={book.ma_sach} activeOpacity={0.85}>
+            {mostViewedBooks.map((book: any, i) => (
+              <ListItem
+                key={book.ma_sach || `mostViewed-${i}`}
+                activeOpacity={0.85}
+                onPress={() =>
+                  (navigation as any).navigate("BookDetail", { book })
+                }
+              >
                 <ListThumb
                   source={{
                     uri: book.hinh_bia || "https://picsum.photos/80/120?random",

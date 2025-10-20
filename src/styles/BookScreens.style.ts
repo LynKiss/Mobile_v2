@@ -89,6 +89,12 @@ export default StyleSheet.create({
     color: "#777",
     marginTop: 4,
   },
+  bookMeta: {
+    fontSize: 12,
+    color: "#2AA3A3",
+    marginTop: 2,
+    fontWeight: "500",
+  },
   gridItem: {
     flex: 1 / 3,
     marginBottom: 14,
@@ -104,6 +110,19 @@ export default StyleSheet.create({
     fontSize: 13,
     fontWeight: "500",
     color: "#333",
+    textAlign: "center",
+  },
+  gridAuthor: {
+    fontSize: 11,
+    color: "#777",
+    marginTop: 2,
+    textAlign: "center",
+  },
+  gridMeta: {
+    fontSize: 11,
+    color: "#2AA3A3",
+    marginTop: 2,
+    fontWeight: "500",
     textAlign: "center",
   },
 });
